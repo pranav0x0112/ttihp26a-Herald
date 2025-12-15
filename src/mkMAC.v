@@ -128,7 +128,7 @@ module mkMAC(CLK,
   wire current_op$EN;
 
   // register cycle_count
-  reg [1 : 0] cycle_count;
+  (* fsm_encoding = "none" *) reg [1 : 0] cycle_count;
   wire [1 : 0] cycle_count$D_IN;
   wire cycle_count$EN;
 
