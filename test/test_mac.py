@@ -32,9 +32,9 @@ def to_signed_32(val):
 
 async def reset_dut(dut):
     """Reset the DUT"""
-    dut.RST_N.value = 0
+    dut.rst_n.value = 0
     await Timer(20, unit='ns')
-    dut.RST_N.value = 1
+    dut.rst_n.value = 1
     await Timer(20, unit='ns')
 
 
@@ -44,7 +44,7 @@ async def wait_ready(dut):
     for _ in range(timeout):
         if dut.busy.value == 0:
             return
-        await RisingEdge(dut.CLK)
+        await RisingEdge(dut.clk)
     raise TimeoutError(f"MAC still busy after {timeout} cycles")
 
 
@@ -55,11 +55,11 @@ async def multiply(dut, a, b):
     dut.multiply_b.value = b & 0xFFFFFFFF
     dut.EN_multiply.value = 1
     
-    await RisingEdge(dut.CLK)
+    await RisingEdge(dut.clk)
     dut.EN_multiply.value = 0
     
     # Wait for computation to complete
-    await RisingEdge(dut.CLK)
+    await RisingEdge(dut.clk)
     await wait_ready(dut)
     
     # Read result
@@ -74,11 +74,11 @@ async def mac_op(dut, a, b):
     dut.mac_b.value = b & 0xFFFFFFFF
     dut.EN_mac.value = 1
     
-    await RisingEdge(dut.CLK)
+    await RisingEdge(dut.clk)
     dut.EN_mac.value = 0
     
     # Wait for computation to complete
-    await RisingEdge(dut.CLK)
+    await RisingEdge(dut.clk)
     await wait_ready(dut)
     
     # Read result
@@ -89,11 +89,11 @@ async def mac_op(dut, a, b):
 async def clear_accumulator(dut):
     """Clear the accumulator"""
     dut.EN_clear_accumulator.value = 1
-    await RisingEdge(dut.CLK)
+    await RisingEdge(dut.clk)
     dut.EN_clear_accumulator.value = 0
     
     # Wait for clear to complete
-    await RisingEdge(dut.CLK)
+    await RisingEdge(dut.clk)
     await wait_ready(dut)
 
 
@@ -102,7 +102,7 @@ async def test_multiply_basic(dut):
     """Test basic multiplication: 2 * 3 = 6"""
     
     # Start clock
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     # Initialize all enable signals to 0
@@ -131,7 +131,7 @@ async def test_multiply_basic(dut):
 async def test_multiply_large(dut):
     """Test larger multiplication: 10 * 10 = 100"""
     
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     dut.EN_multiply.value = 0
@@ -158,7 +158,7 @@ async def test_multiply_large(dut):
 async def test_multiply_negative(dut):
     """Test negative multiplication: -5 * 2 = -10"""
     
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     dut.EN_multiply.value = 0
@@ -185,7 +185,7 @@ async def test_multiply_negative(dut):
 async def test_multiply_zero(dut):
     """Test zero multiplication: 0 * 100 = 0"""
     
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     dut.EN_multiply.value = 0
@@ -209,7 +209,7 @@ async def test_multiply_zero(dut):
 async def test_mac_accumulate(dut):
     """Test MAC accumulation: 0 + (2*3) + (4*5) = 6 + 20 = 26"""
     
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     dut.EN_multiply.value = 0
@@ -245,7 +245,7 @@ async def test_mac_accumulate(dut):
 async def test_mac_clear(dut):
     """Test MAC clear: accumulate then clear, then accumulate again"""
     
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     dut.EN_multiply.value = 0
@@ -277,7 +277,7 @@ async def test_mac_clear(dut):
 async def test_fractional_multiply(dut):
     """Test fractional multiplication: 0.5 * 4 = 2"""
     
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     dut.EN_multiply.value = 0
