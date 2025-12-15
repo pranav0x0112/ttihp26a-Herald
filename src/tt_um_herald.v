@@ -14,30 +14,6 @@ module tt_um_herald (
   assign uio_oe = 8'hFF;
   assign uio_out = 8'h00;
 
-  // Proper 2-state FSM
-  reg state_reg;
-  
-  localparam STATE_IDLE = 1'b0;
-  localparam STATE_ACTIVE = 1'b1;
-  
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-      state_reg <= STATE_IDLE;
-    end else begin
-      case (state_reg)
-        STATE_IDLE: begin
-          if (ena)
-            state_reg <= STATE_ACTIVE;
-        end
-        STATE_ACTIVE: begin
-          if (!ena)
-            state_reg <= STATE_IDLE;
-        end
-        default: state_reg <= STATE_IDLE;
-      endcase
-    end
-  end
-
   // CORDIC wires
   wire [103:0] cordic_result;
   wire cordic_rdy_start, cordic_rdy_result, cordic_busy, cordic_rdy_busy;
@@ -50,7 +26,7 @@ module tt_um_herald (
     .start_y_init(32'h00000000),
     .start_z_init({24'h000000, ui_in}),
     .start_mode(2'b00),
-    .EN_start(ena & state_reg),
+    .EN_start(ena),
     .RDY_start(cordic_rdy_start),
     .EN_getResult(1'b0),
     .getResult(cordic_result),
@@ -71,7 +47,7 @@ module tt_um_herald (
     .RST_N(rst_n),
     .multiply_a({24'h000000, ui_in}),
     .multiply_b({24'h000000, uio_in}),
-    .EN_multiply(ena & state_reg),
+    .EN_multiply(ena),
     .RDY_multiply(mac_rdy_multiply),
     .EN_get_multiply(1'b0),
     .get_multiply(mac_multiply_result),
