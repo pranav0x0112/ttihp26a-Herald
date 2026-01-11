@@ -97,11 +97,9 @@ async def reset_dut(dut):
     dut.EN_sin_cos.value = 0
     dut.EN_atan2.value = 0
     dut.EN_sqrt_magnitude.value = 0
-    dut.EN_multiply.value = 0
     dut.EN_get_sin_cos.value = 0
     dut.EN_get_atan2.value = 0
     dut.EN_get_sqrt.value = 0
-    dut.EN_get_multiply.value = 0
     await ClockCycles(dut.CLK, 5)
     dut.RST_N.value = 1
     await ClockCycles(dut.CLK, 1)
@@ -135,38 +133,45 @@ async def wait_cordic_done(dut):
 
 async def get_sin_cos(dut):
     """Get sin/cos result"""
+    # Wait for result to be ready
     timeout = 0
     while dut.RDY_get_sin_cos.value != 1:
         await RisingEdge(dut.CLK)
         timeout += 1
         if timeout > 50:
+            # Debug: print signals
             dut._log.error(f"RDY_get_sin_cos stuck low after {timeout} cycles")
             dut._log.error(f"  busy={dut.busy.value}")
             dut._log.error(f"  RDY_get_sin_cos={dut.RDY_get_sin_cos.value}")
             raise Exception("get_sin_cos timeout - RDY stuck low")
     
+    # Enable get and read on same cycle
     dut.EN_get_sin_cos.value = 1
     await RisingEdge(dut.CLK)
     dut.EN_get_sin_cos.value = 0
     
     result = int(dut.get_sin_cos.value)
-
+    
+    # Tuple2(sin, cos) packs as {sin[31:0], cos[31:0]}
     sin_val = sign_extend_32((result >> 32) & 0xFFFFFFFF)
     cos_val = sign_extend_32(result & 0xFFFFFFFF)
     return sin_val, cos_val
 
 async def get_atan2(dut):
     """Get atan2 result"""
+    # Wait for result to be ready
     timeout = 0
     while dut.RDY_get_atan2.value != 1:
         await RisingEdge(dut.CLK)
         timeout += 1
         if timeout > 50:
+            # Debug: print signals
             dut._log.error(f"RDY_get_atan2 stuck low after {timeout} cycles")
             dut._log.error(f"  busy={dut.busy.value}")
             dut._log.error(f"  RDY_get_atan2={dut.RDY_get_atan2.value}")
             raise Exception("get_atan2 timeout - RDY stuck low")
-
+    
+    # Enable get and read on same cycle
     dut.EN_get_atan2.value = 1
     await RisingEdge(dut.CLK)
     dut.EN_get_atan2.value = 0
@@ -178,10 +183,12 @@ async def get_atan2(dut):
 @cocotb.test()
 async def test_cordic_comprehensive(dut):
     """Comprehensive CORDIC test - all 10 test cases from CORDIC_TB.bsv"""
-
+    
+    # Start clock
     clock = Clock(dut.CLK, 10, unit="ns")
     cocotb.start_soon(clock.start())
-
+    
+    # Reset
     await reset_dut(dut)
     
     dut._log.info("=" * 60)
@@ -208,16 +215,23 @@ async def test_cordic_comprehensive(dut):
         dut._log.info(f"\n{test_name}")
         
         if mode == "rotation":
+            # Start rotation mode operation
             await cordic_sin_cos(dut, angle)
             
+            # Compute expected result
             expected_sin, expected_cos = cordic_rotation(angle)
             
-        else: 
+        else:  # vectoring
+            # Start vectoring mode operation
             await cordic_atan2(dut, y_in, x_in)
-
+            
+            # Compute expected result (note: x and y swapped internally)
             expected_angle = cordic_vectoring(x_in, y_in)
+        
+        # Wait for completion
         await wait_cordic_done(dut)
-
+        
+        # Get result
         if mode == "rotation":
             sin_res, cos_res = await get_sin_cos(dut)
             
@@ -232,7 +246,7 @@ async def test_cordic_comprehensive(dut):
                 dut._log.error(error_msg)
                 assert False, error_msg
         
-        else:
+        else:  # vectoring
             angle_res = await get_atan2(dut)
             
             dut._log.info(f"  RTL: angle={angle_res:11d}")
@@ -264,12 +278,17 @@ async def test_cordic_basic(dut):
     await reset_dut(dut)
     
     dut._log.info("Basic test: sin/cos(pi/4)")
-
+    
+    # Start operation
     await cordic_sin_cos(dut, 51472)
-
+    
+    # Wait for completion
     await wait_cordic_done(dut)
-
+    
+    # Get result
     sin_res, cos_res = await get_sin_cos(dut)
+    
+    # Expected values
     expected_sin = 46342
     expected_cos = 46341
     
