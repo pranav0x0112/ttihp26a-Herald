@@ -93,64 +93,69 @@ def cordic_vectoring(x_in, y_in):
 
 async def reset_dut(dut):
     """Reset the DUT"""
-    dut.RST_N.value = 0
-    dut.EN_sin_cos.value = 0
-    dut.EN_atan2.value = 0
-    dut.EN_sqrt_magnitude.value = 0
-    dut.EN_get_sin_cos.value = 0
-    dut.EN_get_atan2.value = 0
-    dut.EN_get_sqrt.value = 0
-    await ClockCycles(dut.CLK, 5)
-    dut.RST_N.value = 1
-    await ClockCycles(dut.CLK, 1)
+    cordic = dut.user_project.cordic_inst
+    dut.rst_n.value = 0
+    cordic.EN_sin_cos.value = 0
+    cordic.EN_atan2.value = 0
+    cordic.EN_sqrt_magnitude.value = 0
+    cordic.EN_get_sin_cos.value = 0
+    cordic.EN_get_atan2.value = 0
+    cordic.EN_get_sqrt.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 1)
 
 async def cordic_sin_cos(dut, angle):
     """Start CORDIC sin/cos operation"""
-    await RisingEdge(dut.CLK)
-    dut.sin_cos_angle.value = to_unsigned_32(angle)
-    dut.EN_sin_cos.value = 1
-    await RisingEdge(dut.CLK)
-    dut.EN_sin_cos.value = 0
+    cordic = dut.user_project.cordic_inst
+    await RisingEdge(dut.clk)
+    cordic.sin_cos_angle.value = to_unsigned_32(angle)
+    cordic.EN_sin_cos.value = 1
+    await RisingEdge(dut.clk)
+    cordic.EN_sin_cos.value = 0
 
 async def cordic_atan2(dut, y, x):
     """Start CORDIC atan2 operation"""
-    await RisingEdge(dut.CLK)
-    dut.atan2_y.value = to_unsigned_32(y)
-    dut.atan2_x.value = to_unsigned_32(x)
-    dut.EN_atan2.value = 1
-    await RisingEdge(dut.CLK)
-    dut.EN_atan2.value = 0
+    cordic = dut.user_project.cordic_inst
+    await RisingEdge(dut.clk)
+    cordic.atan2_y.value = to_unsigned_32(y)
+    cordic.atan2_x.value = to_unsigned_32(x)
+    cordic.EN_atan2.value = 1
+    await RisingEdge(dut.clk)
+    cordic.EN_atan2.value = 0
 
 async def wait_cordic_done(dut):
     """Wait for CORDIC to complete and result to be ready"""
+    cordic = dut.user_project.cordic_inst
     # Wait for busy to go low
     timeout = 0
-    while dut.busy.value == 1:
-        await RisingEdge(dut.CLK)
+    while cordic.busy.value == 1:
+        await RisingEdge(dut.clk)
         timeout += 1
         if timeout > 100:
             raise Exception("CORDIC timeout - busy stuck high")
 
 async def get_sin_cos(dut):
     """Get sin/cos result"""
+    cordic = dut.user_project.cordic_inst
     # Wait for result to be ready
     timeout = 0
-    while dut.RDY_get_sin_cos.value != 1:
-        await RisingEdge(dut.CLK)
+    while cordic.RDY_get_sin_cos.value != 1:
+        await RisingEdge(dut.clk)
         timeout += 1
         if timeout > 50:
             # Debug: print signals
             dut._log.error(f"RDY_get_sin_cos stuck low after {timeout} cycles")
-            dut._log.error(f"  busy={dut.busy.value}")
-            dut._log.error(f"  RDY_get_sin_cos={dut.RDY_get_sin_cos.value}")
+            dut._log.error(f"  busy={cordic.busy.value}")
+            dut._log.error(f"  RDY_get_sin_cos={cordic.RDY_get_sin_cos.value}")
             raise Exception("get_sin_cos timeout - RDY stuck low")
     
     # Enable get and read on same cycle
-    dut.EN_get_sin_cos.value = 1
-    await RisingEdge(dut.CLK)
-    dut.EN_get_sin_cos.value = 0
+    cordic.EN_get_sin_cos.value = 1
+    await RisingEdge(dut.clk)
+    cordic.EN_get_sin_cos.value = 0
     
-    result = int(dut.get_sin_cos.value)
+    result = int(cordic.get_sin_cos.value)
     
     # Tuple2(sin, cos) packs as {sin[31:0], cos[31:0]}
     sin_val = sign_extend_32((result >> 32) & 0xFFFFFFFF)
@@ -159,24 +164,25 @@ async def get_sin_cos(dut):
 
 async def get_atan2(dut):
     """Get atan2 result"""
+    cordic = dut.user_project.cordic_inst
     # Wait for result to be ready
     timeout = 0
-    while dut.RDY_get_atan2.value != 1:
-        await RisingEdge(dut.CLK)
+    while cordic.RDY_get_atan2.value != 1:
+        await RisingEdge(dut.clk)
         timeout += 1
         if timeout > 50:
             # Debug: print signals
             dut._log.error(f"RDY_get_atan2 stuck low after {timeout} cycles")
-            dut._log.error(f"  busy={dut.busy.value}")
-            dut._log.error(f"  RDY_get_atan2={dut.RDY_get_atan2.value}")
+            dut._log.error(f"  busy={cordic.busy.value}")
+            dut._log.error(f"  RDY_get_atan2={cordic.RDY_get_atan2.value}")
             raise Exception("get_atan2 timeout - RDY stuck low")
     
     # Enable get and read on same cycle
-    dut.EN_get_atan2.value = 1
-    await RisingEdge(dut.CLK)
-    dut.EN_get_atan2.value = 0
+    cordic.EN_get_atan2.value = 1
+    await RisingEdge(dut.clk)
+    cordic.EN_get_atan2.value = 0
     
-    result = sign_extend_32(int(dut.get_atan2.value))
+    result = sign_extend_32(int(cordic.get_atan2.value))
     
     return result
 
@@ -185,7 +191,7 @@ async def test_cordic_comprehensive(dut):
     """Comprehensive CORDIC test - all 10 test cases from CORDIC_TB.bsv"""
     
     # Start clock
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     # Reset
@@ -271,7 +277,7 @@ async def test_cordic_basic(dut):
     """Basic sanity test - sin/cos(pi/4)"""
     
     # Start clock
-    clock = Clock(dut.CLK, 10, unit="ns")
+    clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     # Reset
