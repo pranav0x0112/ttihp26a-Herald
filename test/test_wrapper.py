@@ -1,6 +1,6 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, FallingEdge, ClockCycles
+from cocotb.triggers import RisingEdge, Timer, ClockCycles
 
 def to_fixed(val):
     """Convert float to Q16.16 fixed point"""
@@ -12,133 +12,244 @@ def from_fixed(val):
         val = val - 0x100000000
     return val / 65536.0
 
+def to_signed_32(val):
+    """Convert unsigned 32-bit to signed"""
+    if val & 0x80000000:
+        return val - 0x100000000
+    return val
+
 async def reset_dut(dut):
     """Reset the DUT"""
     dut.rst_n.value = 0
     dut.ena.value = 1
     dut.ui_in.value = 0
-    dut.uio_in.value = 0
+    dut.uio_in.value = 0  # WR=0, RD=0
     await ClockCycles(dut.clk, 5)
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 2)
 
-async def send_chunk(dut, data_chunk, cmd):
-    """Send a 6-bit data chunk with command and strobe"""
-    # Strobe low
-    dut.ui_in.value = (cmd << 6) | (data_chunk & 0x3F)
+async def write_byte(dut, byte_val):
+    """Write a byte using WR strobe"""
+    dut.ui_in.value = byte_val & 0xFF
+    await Timer(1, unit='ns')
+    dut.uio_in.value = 0x01  # WR=1
     await RisingEdge(dut.clk)
-    
-    # Strobe high (bit 5)
-    dut.ui_in.value = (cmd << 6) | 0x20 | (data_chunk & 0x1F)
-    await RisingEdge(dut.clk)
-    
-    # Strobe low
-    dut.ui_in.value = (cmd << 6) | (data_chunk & 0x3F)
+    await Timer(1, unit='ns')
+    dut.uio_in.value = 0x00  # WR=0
     await RisingEdge(dut.clk)
 
-async def send_32bit(dut, value, cmd):
-    """Send a 32-bit value as 6 chunks of 6 bits (36 bits total, MSB-aligned)"""
-    # Shift left by 4 to align 32 bits in 36-bit space
-    value_36 = (value & 0xFFFFFFFF) << 4
-    
-    # Send 6 chunks, MSB first
-    for i in range(6):
-        shift = 30 - (i * 6)
-        chunk = (value_36 >> shift) & 0x3F
-        await send_chunk(dut, chunk, cmd)
-
-async def read_32bit(dut, cmd):
-    """Read a 32-bit value as 6 chunks of 6 bits"""
-    result = 0
-    
-    for i in range(6):
-        # Strobe to request next chunk
-        dut.ui_in.value = (cmd << 6) | 0x00
-        await RisingEdge(dut.clk)
-        
-        dut.ui_in.value = (cmd << 6) | 0x20
-        await RisingEdge(dut.clk)
-        
-        # Read output (lower 6 bits)
-        chunk = int(dut.uo_out.value) & 0x3F
-        result = (result << 6) | chunk
-        
-        dut.ui_in.value = (cmd << 6) | 0x00
-        await RisingEdge(dut.clk)
-    
-    # Shift right by 4 to get 32-bit value from 36-bit
-    return (result >> 4) & 0xFFFFFFFF
-
-async def mac_multiply(dut, a, b):
-    """Perform MAC multiply operation"""
-    # Send command to start multiply (cmd=01)
-    dut.ui_in.value = 0x40  # cmd=01, strobe=0
+async def read_byte(dut):
+    """Read a byte using RD strobe"""
+    dut.uio_in.value = 0x02  # RD=1
     await RisingEdge(dut.clk)
-    dut.ui_in.value = 0x60  # cmd=01, strobe=1
+    await Timer(1, unit='ns')
+    result = int(dut.uo_out.value) & 0xFF
+    dut.uio_in.value = 0x00  # RD=0
     await RisingEdge(dut.clk)
-    dut.ui_in.value = 0x40  # cmd=01, strobe=0
-    await RisingEdge(dut.clk)
-    
-    # Send operand A
-    await send_32bit(dut, a, 0x01)
-    
-    # Send operand B
-    await send_32bit(dut, b, 0x01)
-    
-    # Wait for computation
-    await ClockCycles(dut.clk, 10)
-    
-    # Read result
-    result = await read_32bit(dut, 0x01)
     return result
 
-async def mac_clear(dut):
-    """Clear MAC accumulator"""
-    # Send clear command (cmd=11)
-    dut.ui_in.value = 0xC0  # cmd=11, strobe=0
-    await RisingEdge(dut.clk)
-    dut.ui_in.value = 0xE0  # cmd=11, strobe=1
-    await RisingEdge(dut.clk)
-    dut.ui_in.value = 0xC0  # cmd=11, strobe=0
-    await RisingEdge(dut.clk)
-    
-    # Wait for operation
-    await ClockCycles(dut.clk, 10)
+async def write_32bit(dut, value):
+    """Write 32-bit value as 4 bytes (LSB first)"""
+    await write_byte(dut, (value >>  0) & 0xFF)
+    await write_byte(dut, (value >>  8) & 0xFF)
+    await write_byte(dut, (value >> 16) & 0xFF)
+    await write_byte(dut, (value >> 24) & 0xFF)
 
+async def read_32bit(dut):
+    """Read 32-bit value as 4 bytes (LSB first)"""
+    b0 = await read_byte(dut)
+    b1 = await read_byte(dut)
+    b2 = await read_byte(dut)
+    b3 = await read_byte(dut)
+    return (b3 << 24) | (b2 << 16) | (b1 << 8) | b0
 
+async def read_64bit(dut):
+    """Read 64-bit value as 8 bytes (LSB first)"""
+    b0 = await read_byte(dut)
+    b1 = await read_byte(dut)
+    b2 = await read_byte(dut)
+    b3 = await read_byte(dut)
+    b4 = await read_byte(dut)
+    b5 = await read_byte(dut)
+    b6 = await read_byte(dut)
+    b7 = await read_byte(dut)
+    low = (b3 << 24) | (b2 << 16) | (b1 << 8) | b0
+    high = (b7 << 24) | (b6 << 16) | (b5 << 8) | b4
+    return (high << 32) | low
+
+async def wait_not_busy(dut, timeout=100):
+    """Wait for BUSY flag to go low"""
+    for _ in range(timeout):
+        await RisingEdge(dut.clk)
+        if (int(dut.uo_out.value) & 0x80) == 0:
+            return
+    raise TimeoutError("Timeout waiting for BUSY=0")
 
 @cocotb.test()
-async def test_wrapper_mac_simple(dut):
-    """Simplified test with direct state observation"""
-    
+async def test_wrapper_mac_multiply(dut):
+    """Test MAC multiply operation through wrapper"""
     clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     await reset_dut(dut)
     
-    # Just verify wrapper responds to commands
-    dut.ui_in.value = 0x00
-    await ClockCycles(dut.clk, 5)
+    # Test: 2 * 3 = 6
+    a = to_fixed(2)
+    b = to_fixed(3)
+    expected = to_fixed(6)
     
-    # Check that design is alive (uo_out should show state)
-    state = int(dut.uo_out.value)
-    dut._log.info(f"Wrapper state: {state:02x}")
+    # Write command
+    await write_byte(dut, 0x20)  # CMD_MAC_MULTIPLY
     
-    # This test just ensures wrapper instantiates without errors
-    assert True
+    # Write operands
+    await write_32bit(dut, a)
+    await write_32bit(dut, b)
+    
+    # Wait for computation
+    await wait_not_busy(dut)
+    
+    # Read result
+    result = await read_32bit(dut)
+    result_signed = to_signed_32(result)
+    
+    dut._log.info(f"MAC multiply: 2 * 3 = {from_fixed(result_signed):.4f} (expected 6.0)")
+    dut._log.info(f"  Raw: result={result_signed}, expected={expected}")
+    
+    assert abs(result_signed - expected) < 100, f"Expected {expected}, got {result_signed}"
+
+@cocotb.test()
+async def test_wrapper_mac_accumulate(dut):
+    """Test MAC accumulate operation through wrapper"""
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
+    
+    await reset_dut(dut)
+    
+    # First MAC: 0 + (2*3) = 6
+    await write_byte(dut, 0x21)  # CMD_MAC_MAC
+    await write_32bit(dut, to_fixed(2))
+    await write_32bit(dut, to_fixed(3))
+    await wait_not_busy(dut)
+    result1 = await read_32bit(dut)
+    
+    dut._log.info(f"MAC: 0 + (2*3) = {from_fixed(to_signed_32(result1)):.4f}")
+    
+    # Second MAC: 6 + (4*5) = 26
+    await write_byte(dut, 0x21)  # CMD_MAC_MAC
+    await write_32bit(dut, to_fixed(4))
+    await write_32bit(dut, to_fixed(5))
+    await wait_not_busy(dut)
+    result2 = await read_32bit(dut)
+    
+    dut._log.info(f"MAC: 6 + (4*5) = {from_fixed(to_signed_32(result2)):.4f}")
+    
+    expected = to_fixed(26)
+    assert abs(to_signed_32(result2) - expected) < 100, f"Expected {expected}, got {to_signed_32(result2)}"
+
+@cocotb.test()
+async def test_wrapper_mac_clear(dut):
+    """Test MAC clear operation"""
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
+    
+    await reset_dut(dut)
+    
+    # Accumulate: 0 + (2*3) = 6
+    await write_byte(dut, 0x21)
+    await write_32bit(dut, to_fixed(2))
+    await write_32bit(dut, to_fixed(3))
+    await wait_not_busy(dut)
+    await read_32bit(dut)
+    
+    # Clear accumulator
+    await write_byte(dut, 0x22)  # CMD_MAC_CLEAR
+    await wait_not_busy(dut)
+    
+    # New accumulation: 0 + (5*5) = 25
+    await write_byte(dut, 0x21)
+    await write_32bit(dut, to_fixed(5))
+    await write_32bit(dut, to_fixed(5))
+    await wait_not_busy(dut)
+    result = await read_32bit(dut)
+    
+    dut._log.info(f"After clear: 0 + (5*5) = {from_fixed(to_signed_32(result)):.4f}")
+    
+    expected = to_fixed(25)
+    assert abs(to_signed_32(result) - expected) < 100
+
+@cocotb.test()
+async def test_wrapper_cordic_sincos(dut):
+    """Test CORDIC sin/cos operation through wrapper"""
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
+    
+    await reset_dut(dut)
+    
+    # Test: sin/cos(pi/4)
+    angle = 51471  # pi/4 in Q16.16
+    
+    # Write command
+    await write_byte(dut, 0x10)  # CMD_CORDIC_SINCOS
+    
+    # Write angle
+    await write_32bit(dut, angle)
+    
+    # Wait for computation (CORDIC takes ~32 iterations)
+    await wait_not_busy(dut, timeout=200)
+    
+    # Read 64-bit result (sin in low 32, cos in high 32)
+    result_64 = await read_64bit(dut)
+    sin_result = to_signed_32(result_64 & 0xFFFFFFFF)
+    cos_result = to_signed_32((result_64 >> 32) & 0xFFFFFFFF)
+    
+    dut._log.info(f"CORDIC sin/cos(pi/4):")
+    dut._log.info(f"  sin = {from_fixed(sin_result):.6f}")
+    dut._log.info(f"  cos = {from_fixed(cos_result):.6f}")
+    
+    # pi/4 -> sin ≈ 0.707, cos ≈ 0.707
+    expected_sin = 46342  # 0.707 in Q16.16
+    expected_cos = 46341
+    
+    assert abs(sin_result - expected_sin) < 10, f"Sin mismatch: {sin_result} vs {expected_sin}"
+    assert abs(cos_result - expected_cos) < 10, f"Cos mismatch: {cos_result} vs {expected_cos}"
+
+@cocotb.test()
+async def test_wrapper_cordic_atan2(dut):
+    """Test CORDIC atan2 operation through wrapper"""
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
+    
+    await reset_dut(dut)
+    
+    # Test: atan2(1, 1) = pi/4
+    y = to_fixed(1)
+    x = to_fixed(1)
+    
+    await write_byte(dut, 0x11)  # CMD_CORDIC_ATAN2
+    await write_32bit(dut, y)
+    await write_32bit(dut, x)
+    
+    await wait_not_busy(dut, timeout=200)
+    
+    result = await read_32bit(dut)
+    result_signed = to_signed_32(result)
+    
+    dut._log.info(f"CORDIC atan2(1,1) = {from_fixed(result_signed):.6f} rad")
+    
+    expected = 51469  # pi/4 in Q16.16
+    assert abs(result_signed - expected) < 10
 
 @cocotb.test()
 async def test_wrapper_reset(dut):
     """Test that wrapper resets properly"""
-    
     clock = Clock(dut.clk, 10, unit="ns")
     cocotb.start_soon(clock.start())
     
     await reset_dut(dut)
     
-    # After reset, should be in IDLE state (0)
+    # After reset, should be in IDLE state, BUSY=0
     await ClockCycles(dut.clk, 2)
-    state = (int(dut.uo_out.value) >> 3) & 0x07
+    status = int(dut.uo_out.value)
     
-    dut._log.info(f"State after reset: {state}")
-    assert state == 0, f"Expected IDLE state (0), got {state}"
+    dut._log.info(f"Status after reset: {status:02x} (BUSY={status >> 7})")
+    assert (status & 0x80) == 0, "Expected BUSY=0 after reset"
