@@ -13,11 +13,10 @@ from cocotb.types import LogicArray
 MODE_ROTATION = 0
 MODE_VECTORING = 1
 
-# Golden model - exact match to RTL implementation
+# Golden model - exact match to RTL implementation (16 iterations)
 ANGLES = [
     51471, 30385, 16054, 8149, 4091, 2047, 1024, 512,
-    256, 128, 64, 32, 16, 8, 4, 2,
-    1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    256, 128, 64, 32, 16, 8, 4, 2
 ]
 
 K_FACTOR = 39797
@@ -41,7 +40,7 @@ def cordic_rotation(angle):
     y = 0
     z = angle
     
-    for i in range(32):
+    for i in range(16):  # Reduced to 16 iterations
         angle_i = ANGLES[i]
         rotate_cw = (z < 0)
         
@@ -69,7 +68,7 @@ def cordic_vectoring(x_in, y_in):
     y = y_in
     z = 0
     
-    for i in range(32):
+    for i in range(16):  # Reduced to 16 iterations
         angle_i = ANGLES[i]
         rotate_cw = (y > 0)
         
