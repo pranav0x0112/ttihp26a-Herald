@@ -18,6 +18,9 @@
   "DIE_AREA": "0 0 338560 225760",
   "FP_DEF_TEMPLATE":  "$(DESIGN_DIR)/../tt/def/2x2.def",
 
+  "GPL_CELL_PADDING": 2,
+  "DPL_CELL_PADDING": 2,
+
   "//": "CLOCK_PERIOD - Increase this in case you are getting setup time violations.",
   "//": "The value is in nanoseconds, so 20ns == 50MHz.",
   "CLOCK_PERIOD": 20,
