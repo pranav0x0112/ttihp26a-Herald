@@ -13,7 +13,7 @@
 
   "//": "PL_TARGET_DENSITY_PCT - You can increase this if Global Placement fails with error GPL-0302.",
   "//": "Users have reported that values up to 80 worked well for them.",
-  "PL_TARGET_DENSITY_PCT": 60,
+  "PL_TARGET_DENSITY_PCT": 85,
 
   "DIE_AREA": "0 0 338560 225760",
   "FP_DEF_TEMPLATE":  "$(DESIGN_DIR)/../tt/def/2x2.def",
