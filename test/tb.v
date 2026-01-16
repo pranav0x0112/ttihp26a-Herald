@@ -10,10 +10,6 @@ module tb ();
   initial begin
     $dumpfile("tb.fst");
     $dumpvars(0, tb);
-    // Explicitly dump the sub-hierarchy for cocotb visibility
-    $dumpvars(0, tb.user_project);
-    $dumpvars(0, tb.user_project.mac_inst);
-    $dumpvars(0, tb.user_project.cordic_inst);
     #1;
   end
 
