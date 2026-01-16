@@ -37,7 +37,14 @@ VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
 
 # List test modules to run, separated by commas and without the .py suffix:
-COCOTB_TEST_MODULES =  test_wrapper,test_mac,test_cordic
+ifneq ($(GATES),yes)
+# RTL simulation: run all tests (wrapper + direct instance tests)
+COCOTB_TEST_MODULES = test_wrapper,test_mac,test_cordic
+else
+# Gate-level simulation: only test through wrapper interface
+# (internal hierarchy not accessible in gate-level netlist)
+COCOTB_TEST_MODULES = test_wrapper
+endif
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
