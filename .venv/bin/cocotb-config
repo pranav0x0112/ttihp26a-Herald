@@ -1,0 +1,7 @@
+#!/home/prawns/All_Git_Clones/Herald-Template/.venv/bin/python
+import sys
+from cocotb_tools.config import main
+if __name__ == '__main__':
+    if sys.argv[0].endswith('.exe'):
+        sys.argv[0] = sys.argv[0][:-4]
+    sys.exit(main())

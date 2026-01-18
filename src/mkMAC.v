@@ -7,20 +7,20 @@
 // Ports:
 // Name                         I/O  size props
 // RDY_multiply                   O     1
-// get_multiply                   O    16 reg
+// get_multiply                   O    24 reg
 // RDY_get_multiply               O     1 reg
 // RDY_mac                        O     1
-// get_mac                        O    16 reg
+// get_mac                        O    24 reg
 // RDY_get_mac                    O     1 reg
 // RDY_clear_accumulator          O     1
 // busy                           O     1
 // RDY_busy                       O     1 const
 // CLK                            I     1 clock
 // RST_N                          I     1 reset
-// multiply_a                     I    16
-// multiply_b                     I    16
-// mac_a                          I    16
-// mac_b                          I    16
+// multiply_a                     I    24
+// multiply_b                     I    24
+// mac_a                          I    24
+// mac_b                          I    24
 // EN_multiply                    I     1
 // EN_mac                         I     1
 // EN_clear_accumulator           I     1
@@ -74,25 +74,25 @@ module mkMAC(CLK,
   input  RST_N;
 
   // action method multiply
-  input  [15 : 0] multiply_a;
-  input  [15 : 0] multiply_b;
+  input  [23 : 0] multiply_a;
+  input  [23 : 0] multiply_b;
   input  EN_multiply;
   output RDY_multiply;
 
   // actionvalue method get_multiply
   input  EN_get_multiply;
-  output [15 : 0] get_multiply;
+  output [23 : 0] get_multiply;
   output RDY_get_multiply;
 
   // action method mac
-  input  [15 : 0] mac_a;
-  input  [15 : 0] mac_b;
+  input  [23 : 0] mac_a;
+  input  [23 : 0] mac_b;
   input  EN_mac;
   output RDY_mac;
 
   // actionvalue method get_mac
   input  EN_get_mac;
-  output [15 : 0] get_mac;
+  output [23 : 0] get_mac;
   output RDY_get_mac;
 
   // action method clear_accumulator
@@ -104,7 +104,7 @@ module mkMAC(CLK,
   output RDY_busy;
 
   // signals for module outputs
-  wire [15 : 0] get_mac, get_multiply;
+  wire [23 : 0] get_mac, get_multiply;
   wire RDY_busy,
        RDY_clear_accumulator,
        RDY_get_mac,
@@ -114,8 +114,8 @@ module mkMAC(CLK,
        busy;
 
   // register accumulator
-  reg [15 : 0] accumulator;
-  wire [15 : 0] accumulator$D_IN;
+  reg [23 : 0] accumulator;
+  wire [23 : 0] accumulator$D_IN;
   wire accumulator$EN;
 
   // register busy_mac
@@ -127,27 +127,27 @@ module mkMAC(CLK,
   wire busy_multiply$D_IN, busy_multiply$EN;
 
   // register mac_result
-  reg [15 : 0] mac_result;
-  wire [15 : 0] mac_result$D_IN;
+  reg [23 : 0] mac_result;
+  wire [23 : 0] mac_result$D_IN;
   wire mac_result$EN;
 
   // register multiply_result
-  reg [15 : 0] multiply_result;
-  wire [15 : 0] multiply_result$D_IN;
+  reg [23 : 0] multiply_result;
+  wire [23 : 0] multiply_result$D_IN;
   wire multiply_result$EN;
 
   // inputs to muxes for submodule ports
-  wire [15 : 0] MUX_accumulator$write_1__VAL_1;
+  wire [23 : 0] MUX_accumulator$write_1__VAL_1;
 
   // remaining internal signals
-  wire [63 : 0] SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15,
+  wire [95 : 0] SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15,
 		SEXT_multiply_a_MUL_SEXT_multiply_b___d3;
-  wire [31 : 0] SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_T_ETC__q3,
+  wire [47 : 0] SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_T_ETC__q3,
 		SEXT_SEXT_multiply_a_MUL_SEXT_multiply_b_BITS__ETC__q6,
-		SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0__q1,
-		SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_0__q4;
-  wire [23 : 0] SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0_B_ETC__q2,
-		SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_ETC__q5;
+		SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0__q1,
+		SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_0__q4;
+  wire [35 : 0] SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2,
+		SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5;
   // action method multiply
   assign RDY_multiply = RDY_clear_accumulator ;
 
@@ -172,10 +172,10 @@ module mkMAC(CLK,
   // inputs to muxes for submodule ports
   assign MUX_accumulator$write_1__VAL_1 =
 	     accumulator +
-	     SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_T_ETC__q3[15:0] ;
+	     SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_T_ETC__q3[23:0] ;
 
   // register accumulator
-  assign accumulator$D_IN = EN_mac ? MUX_accumulator$write_1__VAL_1 : 16'd0 ;
+  assign accumulator$D_IN = EN_mac ? MUX_accumulator$write_1__VAL_1 : 24'd0 ;
   assign accumulator$EN = EN_mac || EN_clear_accumulator ;
 
   // register busy_mac
@@ -187,34 +187,34 @@ module mkMAC(CLK,
   assign busy_multiply$EN = EN_get_multiply || EN_multiply ;
 
   // register mac_result
-  assign mac_result$D_IN = EN_mac ? MUX_accumulator$write_1__VAL_1 : 16'd0 ;
+  assign mac_result$D_IN = EN_mac ? MUX_accumulator$write_1__VAL_1 : 24'd0 ;
   assign mac_result$EN = EN_mac || EN_clear_accumulator ;
 
   // register multiply_result
   assign multiply_result$D_IN =
-	     SEXT_SEXT_multiply_a_MUL_SEXT_multiply_b_BITS__ETC__q6[15:0] ;
+	     SEXT_SEXT_multiply_a_MUL_SEXT_multiply_b_BITS__ETC__q6[23:0] ;
   assign multiply_result$EN = EN_multiply ;
 
   // remaining internal signals
-  assign SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_T_ETC__q3 =
-	     { {8{SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0_B_ETC__q2[23]}},
-	       SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0_B_ETC__q2 } ;
+  assign SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_T_ETC__q3 =
+	     { {12{SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2[35]}},
+	       SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2 } ;
   assign SEXT_SEXT_multiply_a_MUL_SEXT_multiply_b_BITS__ETC__q6 =
-	     { {8{SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_ETC__q5[23]}},
-	       SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_ETC__q5 } ;
-  assign SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0_B_ETC__q2 =
-	     SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0__q1[31:8] ;
-  assign SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_31_TO_0__q1 =
-	     SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15[31:0] ;
+	     { {12{SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5[35]}},
+	       SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5 } ;
+  assign SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2 =
+	     SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0__q1[47:12] ;
+  assign SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0__q1 =
+	     SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15[47:0] ;
   assign SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15 =
-	     { {16{mac_a[15]}}, mac_a } * { {16{mac_b[15]}}, mac_b } ;
-  assign SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_0__q4 =
-	     SEXT_multiply_a_MUL_SEXT_multiply_b___d3[31:0] ;
-  assign SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_ETC__q5 =
-	     SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_31_TO_0__q4[31:8] ;
+	     { {24{mac_a[23]}}, mac_a } * { {24{mac_b[23]}}, mac_b } ;
+  assign SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_0__q4 =
+	     SEXT_multiply_a_MUL_SEXT_multiply_b___d3[47:0] ;
+  assign SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5 =
+	     SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_0__q4[47:12] ;
   assign SEXT_multiply_a_MUL_SEXT_multiply_b___d3 =
-	     { {16{multiply_a[15]}}, multiply_a } *
-	     { {16{multiply_b[15]}}, multiply_b } ;
+	     { {24{multiply_a[23]}}, multiply_a } *
+	     { {24{multiply_b[23]}}, multiply_b } ;
 
   // handling of inlined registers
 
@@ -222,11 +222,11 @@ module mkMAC(CLK,
   begin
     if (RST_N == `BSV_RESET_VALUE)
       begin
-        accumulator <= `BSV_ASSIGNMENT_DELAY 16'd0;
+        accumulator <= `BSV_ASSIGNMENT_DELAY 24'd0;
 	busy_mac <= `BSV_ASSIGNMENT_DELAY 1'd0;
 	busy_multiply <= `BSV_ASSIGNMENT_DELAY 1'd0;
-	mac_result <= `BSV_ASSIGNMENT_DELAY 16'd0;
-	multiply_result <= `BSV_ASSIGNMENT_DELAY 16'd0;
+	mac_result <= `BSV_ASSIGNMENT_DELAY 24'd0;
+	multiply_result <= `BSV_ASSIGNMENT_DELAY 24'd0;
       end
     else
       begin
@@ -247,11 +247,11 @@ module mkMAC(CLK,
   `else // not BSV_NO_INITIAL_BLOCKS
   initial
   begin
-    accumulator = 16'hAAAA;
+    accumulator = 24'hAAAAAA;
     busy_mac = 1'h0;
     busy_multiply = 1'h0;
-    mac_result = 16'hAAAA;
-    multiply_result = 16'hAAAA;
+    mac_result = 24'hAAAAAA;
+    multiply_result = 24'hAAAAAA;
   end
   `endif // BSV_NO_INITIAL_BLOCKS
   // synopsys translate_on
