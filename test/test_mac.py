@@ -112,6 +112,32 @@ async def clear_accumulator(dut):
     # Clear is instantaneous, no need to wait for busy
 
 
+async def msu_op(dut, a, b):
+    """Perform MSU (multiply-subtract) operation"""
+    mac_inst = dut.user_project.mac_inst
+    # Set inputs
+    mac_inst.msu_a.value = a & 0xFFFFFF
+    mac_inst.msu_b.value = b & 0xFFFFFF
+    mac_inst.EN_msu.value = 1
+    
+    await RisingEdge(dut.clk)
+    await Timer(1, unit='ns')  # Let values settle
+    mac_inst.EN_msu.value = 0
+    
+    # Wait one more cycle for result_reg to be updated
+    await RisingEdge(dut.clk)
+    await Timer(1, unit='ns')
+    
+    # Read result immediately (enable the ActionValue method)
+    mac_inst.EN_get_msu.value = 1
+    await RisingEdge(dut.clk)
+    await Timer(1, unit='ns')  # Let values settle
+    result = int(mac_inst.get_msu.value)
+    mac_inst.EN_get_msu.value = 0
+    
+    return to_signed_24(result)
+
+
 @cocotb.test()
 async def test_multiply_basic(dut):
     """Test basic multiplication: 2 * 3 = 6"""
@@ -126,6 +152,8 @@ async def test_multiply_basic(dut):
     mac_inst.EN_get_multiply.value = 0
     mac_inst.EN_get_mac.value = 0
     mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
     mac_inst.EN_clear_accumulator.value = 0
     
     await reset_dut(dut)
@@ -154,6 +182,8 @@ async def test_multiply_large(dut):
     mac_inst.EN_get_multiply.value = 0
     mac_inst.EN_get_mac.value = 0
     mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
     mac_inst.EN_clear_accumulator.value = 0
     
     await reset_dut(dut)
@@ -181,6 +211,8 @@ async def test_multiply_negative(dut):
     mac_inst.EN_get_multiply.value = 0
     mac_inst.EN_get_mac.value = 0
     mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
     mac_inst.EN_clear_accumulator.value = 0
     
     await reset_dut(dut)
@@ -208,6 +240,8 @@ async def test_multiply_zero(dut):
     mac_inst.EN_get_multiply.value = 0
     mac_inst.EN_get_mac.value = 0
     mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
     mac_inst.EN_clear_accumulator.value = 0
     
     await reset_dut(dut)
@@ -235,6 +269,8 @@ async def test_mac_accumulate(dut):
     mac_inst.EN_get_multiply.value = 0
     mac_inst.EN_get_mac.value = 0
     mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
     mac_inst.EN_clear_accumulator.value = 0
     
     await reset_dut(dut)
@@ -274,6 +310,8 @@ async def test_mac_clear(dut):
     mac_inst.EN_get_multiply.value = 0
     mac_inst.EN_get_mac.value = 0
     mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
     mac_inst.EN_clear_accumulator.value = 0
     
     await reset_dut(dut)
@@ -322,3 +360,75 @@ async def test_fractional_multiply(dut):
     dut._log.info(f"0.5 * 4 = {from_fixed(result):.4f} (expected 2.0)")
     
     assert abs(result - expected) < 100, f"Expected {expected}, got {result}"
+
+
+@cocotb.test()
+async def test_msu_basic(dut):
+    """Test MSU (multiply-subtract): 10 - (2*3) = 4"""
+    
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
+    
+    mac_inst = dut.user_project.mac_inst
+    mac_inst.EN_multiply.value = 0
+    mac_inst.EN_get_multiply.value = 0
+    mac_inst.EN_get_mac.value = 0
+    mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
+    mac_inst.EN_clear_accumulator.value = 0
+    
+    await reset_dut(dut)
+    await clear_accumulator(dut)
+    
+    # First accumulate 10
+    result1 = await mac_op(dut, to_fixed(10), to_fixed(1))
+    dut._log.info(f"MAC: 0 + (10*1) = {from_fixed(result1):.4f}")
+    
+    # Then subtract (2*3) = 6, should give 10 - 6 = 4
+    result2 = await msu_op(dut, to_fixed(2), to_fixed(3))
+    expected = to_fixed(4)
+    
+    dut._log.info(f"MSU: 10 - (2*3) = {from_fixed(result2):.4f} (expected 4.0)")
+    assert abs(result2 - expected) < 100, f"Expected {expected}, got {result2}"
+
+
+@cocotb.test()
+async def test_msu_filter(dut):
+    """Test MSU for IIR filter: y = α*x + (1-α)*y_prev"""
+    
+    clock = Clock(dut.clk, 10, unit="ns")
+    cocotb.start_soon(clock.start())
+    
+    mac_inst = dut.user_project.mac_inst
+    mac_inst.EN_multiply.value = 0
+    mac_inst.EN_get_multiply.value = 0
+    mac_inst.EN_get_mac.value = 0
+    mac_inst.EN_mac.value = 0
+    mac_inst.EN_msu.value = 0
+    mac_inst.EN_get_msu.value = 0
+    mac_inst.EN_clear_accumulator.value = 0
+    
+    await reset_dut(dut)
+    await clear_accumulator(dut)
+    
+    # Simple IIR: new_y = 0.25*x_new + 0.75*y_prev
+    # If x_new=8, y_prev=4 -> new_y = 0.25*8 + 0.75*4 = 2 + 3 = 5
+    alpha = to_fixed(0.25)
+    x_new = to_fixed(8)
+    y_prev = to_fixed(4)
+    one_minus_alpha = to_fixed(0.75)
+    
+    # Clear and compute
+    await clear_accumulator(dut)
+    
+    # accumulator = 0 + (x_new * alpha) = 2
+    result1 = await mac_op(dut, x_new, alpha)
+    dut._log.info(f"Step 1: 0 + (8*0.25) = {from_fixed(result1):.4f}")
+    
+    # accumulator = 2 + (y_prev * 0.75) = 5
+    result2 = await mac_op(dut, y_prev, one_minus_alpha)
+    expected = to_fixed(5)
+    
+    dut._log.info(f"Step 2: 2 + (4*0.75) = {from_fixed(result2):.4f} (expected 5.0)")
+    assert abs(result2 - expected) < 100, f"Expected {expected}, got {result2}"

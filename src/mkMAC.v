@@ -12,6 +12,9 @@
 // RDY_mac                        O     1
 // get_mac                        O    24 reg
 // RDY_get_mac                    O     1 reg
+// RDY_msu                        O     1
+// get_msu                        O    24 reg
+// RDY_get_msu                    O     1 reg
 // RDY_clear_accumulator          O     1
 // busy                           O     1
 // RDY_busy                       O     1 const
@@ -21,11 +24,15 @@
 // multiply_b                     I    24
 // mac_a                          I    24
 // mac_b                          I    24
+// msu_a                          I    24
+// msu_b                          I    24
 // EN_multiply                    I     1
 // EN_mac                         I     1
+// EN_msu                         I     1
 // EN_clear_accumulator           I     1
 // EN_get_multiply                I     1
 // EN_get_mac                     I     1
+// EN_get_msu                     I     1
 //
 // No combinational paths from inputs to outputs
 //
@@ -65,6 +72,15 @@ module mkMAC(CLK,
 	     get_mac,
 	     RDY_get_mac,
 
+	     msu_a,
+	     msu_b,
+	     EN_msu,
+	     RDY_msu,
+
+	     EN_get_msu,
+	     get_msu,
+	     RDY_get_msu,
+
 	     EN_clear_accumulator,
 	     RDY_clear_accumulator,
 
@@ -95,6 +111,17 @@ module mkMAC(CLK,
   output [23 : 0] get_mac;
   output RDY_get_mac;
 
+  // action method msu
+  input  [23 : 0] msu_a;
+  input  [23 : 0] msu_b;
+  input  EN_msu;
+  output RDY_msu;
+
+  // actionvalue method get_msu
+  input  EN_get_msu;
+  output [23 : 0] get_msu;
+  output RDY_get_msu;
+
   // action method clear_accumulator
   input  EN_clear_accumulator;
   output RDY_clear_accumulator;
@@ -104,12 +131,14 @@ module mkMAC(CLK,
   output RDY_busy;
 
   // signals for module outputs
-  wire [23 : 0] get_mac, get_multiply;
+  wire [23 : 0] get_mac, get_msu, get_multiply;
   wire RDY_busy,
        RDY_clear_accumulator,
        RDY_get_mac,
+       RDY_get_msu,
        RDY_get_multiply,
        RDY_mac,
+       RDY_msu,
        RDY_multiply,
        busy;
 
@@ -122,6 +151,10 @@ module mkMAC(CLK,
   reg busy_mac;
   wire busy_mac$D_IN, busy_mac$EN;
 
+  // register busy_msu
+  reg busy_msu;
+  wire busy_msu$D_IN, busy_msu$EN;
+
   // register busy_multiply
   reg busy_multiply;
   wire busy_multiply$D_IN, busy_multiply$EN;
@@ -131,22 +164,31 @@ module mkMAC(CLK,
   wire [23 : 0] mac_result$D_IN;
   wire mac_result$EN;
 
+  // register msu_result
+  reg [23 : 0] msu_result;
+  wire [23 : 0] msu_result$D_IN;
+  wire msu_result$EN;
+
   // register multiply_result
   reg [23 : 0] multiply_result;
   wire [23 : 0] multiply_result$D_IN;
   wire multiply_result$EN;
 
   // inputs to muxes for submodule ports
-  wire [23 : 0] MUX_accumulator$write_1__VAL_1;
+  wire [23 : 0] MUX_accumulator$write_1__VAL_1, MUX_accumulator$write_2__VAL_1;
 
   // remaining internal signals
   wire [95 : 0] SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15,
+		SEXT_msu_a_3_MUL_SEXT_msu_b_4___d15,
 		SEXT_multiply_a_MUL_SEXT_multiply_b___d3;
   wire [47 : 0] SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_T_ETC__q3,
+		SEXT_SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_T_ETC__q3,
 		SEXT_SEXT_multiply_a_MUL_SEXT_multiply_b_BITS__ETC__q6,
 		SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0__q1,
+		SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0__q1,
 		SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_0__q4;
   wire [35 : 0] SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2,
+		SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0_B_ETC__q2,
 		SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5;
   // action method multiply
   assign RDY_multiply = RDY_clear_accumulator ;
@@ -162,33 +204,56 @@ module mkMAC(CLK,
   assign get_mac = mac_result ;
   assign RDY_get_mac = busy_mac ;
 
+  // action method msu
+  assign RDY_msu = RDY_clear_accumulator ;
+
+  // actionvalue method get_msu
+  assign get_msu = msu_result ;
+  assign RDY_get_msu = busy_msu ;
+
   // action method clear_accumulator
-  assign RDY_clear_accumulator = !busy_multiply && !busy_mac ;
+  assign RDY_clear_accumulator = !busy_multiply && !busy_mac && !busy_msu ;
 
   // value method busy
-  assign busy = busy_multiply || busy_mac ;
+  assign busy = busy_multiply || busy_mac || busy_msu ;
   assign RDY_busy = 1'd1 ;
 
   // inputs to muxes for submodule ports
   assign MUX_accumulator$write_1__VAL_1 =
 	     accumulator +
 	     SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_T_ETC__q3[23:0] ;
+  assign MUX_accumulator$write_2__VAL_1 =
+	     accumulator -
+	     SEXT_SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_T_ETC__q3[23:0] ;
 
   // register accumulator
-  assign accumulator$D_IN = EN_mac ? MUX_accumulator$write_1__VAL_1 : 24'd0 ;
-  assign accumulator$EN = EN_mac || EN_clear_accumulator ;
+  assign accumulator$D_IN =
+	     EN_msu ? MUX_accumulator$write_2__VAL_1 :
+	     (EN_mac ? MUX_accumulator$write_1__VAL_1 : 24'd0) ;
+  assign accumulator$EN = EN_mac || EN_msu || EN_clear_accumulator ;
 
   // register busy_mac
   assign busy_mac$D_IN = !EN_get_mac ;
   assign busy_mac$EN = EN_get_mac || EN_mac ;
+
+  // register busy_msu
+  assign busy_msu$D_IN = !EN_get_msu ;
+  assign busy_msu$EN = EN_get_msu || EN_msu ;
 
   // register busy_multiply
   assign busy_multiply$D_IN = !EN_get_multiply ;
   assign busy_multiply$EN = EN_get_multiply || EN_multiply ;
 
   // register mac_result
-  assign mac_result$D_IN = EN_mac ? MUX_accumulator$write_1__VAL_1 : 24'd0 ;
-  assign mac_result$EN = EN_mac || EN_clear_accumulator ;
+  assign mac_result$D_IN =
+	     EN_msu ? 24'd0 :
+	     (EN_mac ? MUX_accumulator$write_1__VAL_1 : 24'd0) ;
+  assign mac_result$EN = EN_mac || EN_msu || EN_clear_accumulator ;
+
+  // register msu_result
+  assign msu_result$D_IN =
+	     EN_msu ? MUX_accumulator$write_2__VAL_1 : 24'd0 ;
+  assign msu_result$EN = EN_mac || EN_msu || EN_clear_accumulator ;
 
   // register multiply_result
   assign multiply_result$D_IN =
@@ -199,6 +264,9 @@ module mkMAC(CLK,
   assign SEXT_SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_T_ETC__q3 =
 	     { {12{SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2[35]}},
 	       SEXT_mac_a_3_MUL_SEXT_mac_b_4_5_BITS_47_TO_0_B_ETC__q2 } ;
+  assign SEXT_SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_T_ETC__q3 =
+	     { {12{SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0_B_ETC__q2[35]}},
+	       SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0_B_ETC__q2 } ;
   assign SEXT_SEXT_multiply_a_MUL_SEXT_multiply_b_BITS__ETC__q6 =
 	     { {12{SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5[35]}},
 	       SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5 } ;
@@ -208,6 +276,12 @@ module mkMAC(CLK,
 	     SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15[47:0] ;
   assign SEXT_mac_a_3_MUL_SEXT_mac_b_4___d15 =
 	     { {24{mac_a[23]}}, mac_a } * { {24{mac_b[23]}}, mac_b } ;
+  assign SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0_B_ETC__q2 =
+	     SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0__q1[47:12] ;
+  assign SEXT_msu_a_3_MUL_SEXT_msu_b_4_5_BITS_47_TO_0__q1 =
+	     SEXT_msu_a_3_MUL_SEXT_msu_b_4___d15[47:0] ;
+  assign SEXT_msu_a_3_MUL_SEXT_msu_b_4___d15 =
+	     { {24{msu_a[23]}}, msu_a } * { {24{msu_b[23]}}, msu_b } ;
   assign SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_0__q4 =
 	     SEXT_multiply_a_MUL_SEXT_multiply_b___d3[47:0] ;
   assign SEXT_multiply_a_MUL_SEXT_multiply_b_BITS_47_TO_ETC__q5 =
@@ -224,8 +298,10 @@ module mkMAC(CLK,
       begin
         accumulator <= `BSV_ASSIGNMENT_DELAY 24'd0;
 	busy_mac <= `BSV_ASSIGNMENT_DELAY 1'd0;
+	busy_msu <= `BSV_ASSIGNMENT_DELAY 1'd0;
 	busy_multiply <= `BSV_ASSIGNMENT_DELAY 1'd0;
 	mac_result <= `BSV_ASSIGNMENT_DELAY 24'd0;
+	msu_result <= `BSV_ASSIGNMENT_DELAY 24'd0;
 	multiply_result <= `BSV_ASSIGNMENT_DELAY 24'd0;
       end
     else
@@ -233,10 +309,13 @@ module mkMAC(CLK,
         if (accumulator$EN)
 	  accumulator <= `BSV_ASSIGNMENT_DELAY accumulator$D_IN;
 	if (busy_mac$EN) busy_mac <= `BSV_ASSIGNMENT_DELAY busy_mac$D_IN;
+	if (busy_msu$EN) busy_msu <= `BSV_ASSIGNMENT_DELAY busy_msu$D_IN;
 	if (busy_multiply$EN)
 	  busy_multiply <= `BSV_ASSIGNMENT_DELAY busy_multiply$D_IN;
 	if (mac_result$EN)
 	  mac_result <= `BSV_ASSIGNMENT_DELAY mac_result$D_IN;
+	if (msu_result$EN)
+	  msu_result <= `BSV_ASSIGNMENT_DELAY msu_result$D_IN;
 	if (multiply_result$EN)
 	  multiply_result <= `BSV_ASSIGNMENT_DELAY multiply_result$D_IN;
       end
@@ -249,8 +328,10 @@ module mkMAC(CLK,
   begin
     accumulator = 24'hAAAAAA;
     busy_mac = 1'h0;
+    busy_msu = 1'h0;
     busy_multiply = 1'h0;
     mac_result = 24'hAAAAAA;
+    msu_result = 24'hAAAAAA;
     multiply_result = 24'hAAAAAA;
   end
   `endif // BSV_NO_INITIAL_BLOCKS
