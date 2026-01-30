@@ -38,13 +38,12 @@
     "PRAWNS_ART": {
       "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
       "lef": ["dir::../macros/prawns_art/prawns_art.lef"],
-      "instances": [
-        {
-          "instance": "PRAWNS_ART_INST",
+      "instances": {
+        "PRAWNS_ART_INST": {
           "location": [50000, 50000],
           "orientation": "N"
         }
-      ]
+      }
     }
   },
 
