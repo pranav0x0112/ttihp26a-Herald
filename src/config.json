@@ -38,7 +38,7 @@
     "$(PROJECT_ROOT)/macros/prawns_art/prawns_art.lef"
   ],
 
-  "EXTRA_GDS_FILES": [
+  "EXTRA_GDS": [
     "$(PROJECT_ROOT)/macros/prawns_art/prawns_art.gds"
   ],
 
