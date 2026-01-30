@@ -35,14 +35,14 @@
   "CLOCK_PORT": "clk",
 
   "EXTRA_LEFS": [
-    "$(PROJECT_ROOT)/macros/prawns_art/prawns_art.lef"
+    "/macros/prawns_art/prawns_art.lef"
   ],
 
   "EXTRA_GDS": [
-    "$(PROJECT_ROOT)/macros/prawns_art/prawns_art.gds"
+    "/macros/prawns_art/prawns_art.gds"
   ],
 
-  "MACRO_PLACEMENT_CFG": "$(PROJECT_ROOT)/macro_placement.cfg",
+  "MACRO_PLACEMENT_CFG": "macro_placement.cfg",
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
