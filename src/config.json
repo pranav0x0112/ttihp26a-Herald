@@ -34,11 +34,19 @@
   "//": "https://tinytapeout.com/faq/#how-can-i-map-an-additional-external-clock-to-one-of-the-gpios",
   "CLOCK_PORT": "clk",
 
-  "EXTRA_LEFS": ["dir::../macros/prawns_art/prawns_art.lef"],
-
-  "EXTRA_GDS": ["dir::../macros/prawns_art/prawns_art.gds"],
-
-  "MACRO_PLACEMENT_CFG": "dir::../macro_placement.cfg",
+  "MACROS": {
+    "PRAWNS_ART": {
+      "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
+      "lef": ["dir::../macros/prawns_art/prawns_art.lef"],
+      "placements": [
+        {
+          "instance": "PRAWNS_ART_INST",
+          "location": [50000, 50000],
+          "orientation": "N"
+        }
+      ]
+    }
+  },
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
