@@ -35,11 +35,11 @@
   "CLOCK_PORT": "clk",
 
   "EXTRA_LEFS": [
-    "$(PROJECT_ROOT)/../macros/prawns_art/prawns_art.lef"
+    "$(PROJECT_ROOT)/macros/prawns_art/prawns_art.lef"
   ],
 
   "EXTRA_GDS_FILES": [
-    "$(PROJECT_ROOT)/../macros/prawns_art/prawns_art.gds"
+    "$(PROJECT_ROOT)/macros/prawns_art/prawns_art.gds"
   ],
 
   "MACRO_PLACEMENT_CFG": "$(PROJECT_ROOT)/macro_placement.cfg",
