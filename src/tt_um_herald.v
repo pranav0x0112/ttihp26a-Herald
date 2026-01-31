@@ -229,7 +229,7 @@ module tt_um_herald (
               if (cmd_reg == CMD_CORDIC_ATAN2 || cmd_reg == CMD_CORDIC_SQRT ||
                   cmd_reg == CMD_CORDIC_NORMALIZE ||
                   cmd_reg == CMD_MAC_MULTIPLY || cmd_reg == CMD_MAC_MAC) begin
-                byte_counter <= 3'd0;
+                byte_counter <= 4'd0;
                 state <= DATA_WRITE_B;
               end else begin
                 state <= EXECUTE;
@@ -275,7 +275,7 @@ module tt_um_herald (
                 cordic_en_get_sin_cos <= 1'b1;
                 if (cordic_rdy_get_sin_cos) begin
                   result_reg <= cordic_sin_cos;  // 48-bit (2x 24-bit)
-                  byte_counter <= 3'd0;
+                  byte_counter <= 4'd0;
                   state <= RESULT_READY;
                 end
               end
@@ -291,7 +291,7 @@ module tt_um_herald (
                 cordic_en_get_atan2 <= 1'b1;
                 if (cordic_rdy_get_atan2) begin
                   result_reg[23:0] <= cordic_atan2_result;  // 24-bit result
-                  byte_counter <= 3'd0;
+                  byte_counter <= 4'd0;
                   state <= RESULT_READY;
                 end
               end
