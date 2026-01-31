@@ -1,5 +1,9 @@
 `default_nettype none
 
+(* blackbox *) (* keep *)
+module PRAWNS_ART ();
+endmodule
+
 module tt_um_herald (
     input  wire [7:0] ui_in,      // Data input bus
     output reg  [7:0] uo_out,     // Data output bus (bit 7 = BUSY)
