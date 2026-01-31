@@ -53,11 +53,10 @@
   ],
   
   "ERROR_ON_DISCONNECTED_PINS": false,
-
-  "SYNTH_BUFFERING": 0,
-  "SYNTH_SIZING": 0,
-  
+  "SYNTH_USE_PG_PINS": false,
+  "SYNTH_NO_FLAT": true,
   "FP_PDN_CHECK_NODES": false,
+  "PDN_ENABLE": false,
   "ERROR_ON_PDN_VIOLATIONS": false,
 
 
