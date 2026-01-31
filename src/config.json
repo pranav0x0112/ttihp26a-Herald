@@ -36,16 +36,23 @@
 
   "MACROS": {
     "PRAWNS_ART": {
-      "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
-      "lef": ["dir::../macros/prawns_art/prawns_art.lef"],
       "instances": {
-        "PRAWNS_ART_INST": {
-          "location": [50000, 50000],
+        "prawns_art_inst": {
+          "location": [15, 12],
           "orientation": "N"
         }
-      }
+      },
+      "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
+      "lef": ["dir::../macros/prawns_art/prawns_art.lef"]
     }
   },
+  
+  "IGNORE_DISCONNECTED_MODULES": [
+    "PRAWNS_ART",
+    "prawns_art_inst"
+  ],
+  
+  "ERROR_ON_DISCONNECTED_PINS": false,
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
