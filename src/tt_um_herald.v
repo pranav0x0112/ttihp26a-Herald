@@ -1,7 +1,9 @@
 `default_nettype none
 
 (* blackbox *) (* keep *)
-module PRAWNS_ART ();
+module PRAWNS_ART (
+	input wire _unused
+);
 endmodule
 
 module tt_um_herald (
@@ -16,7 +18,9 @@ module tt_um_herald (
 );
 
   (* keep *)
-  PRAWNS_ART prawns_art_inst ();
+  PRAWNS_ART prawns_art_inst (
+  	._unused(1'b0)
+  );
   // Bidirectional pins unused
   assign uio_oe = 8'h00;
   assign uio_out = 8'h00;
