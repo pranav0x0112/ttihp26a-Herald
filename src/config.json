@@ -54,6 +54,13 @@
   
   "ERROR_ON_DISCONNECTED_PINS": false,
 
+  "SYNTH_BUFFERING": 0,
+  "SYNTH_SIZING": 0,
+  
+  "FP_PDN_CHECK_NODES": false,
+  "ERROR_ON_PDN_VIOLATIONS": false,
+
+
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
