@@ -9,7 +9,7 @@ module PRAWNS_ART (
 endmodule
 
 module tt_um_herald (
-    input  wire [7:0] ui_in,      // Data input bus
+    input  wire [7:0] ui_in,      
     output reg  [7:0] uo_out,     // Data output bus (bit 7 = BUSY)
     input  wire [7:0] uio_in,     // Control: [1]=RD, [0]=WR
     output wire [7:0] uio_out,
