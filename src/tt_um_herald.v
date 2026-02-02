@@ -2,8 +2,10 @@
 
 (* blackbox *) (* keep *)
 module PRAWNS_ART (
-	input wire _unused
+	input wire _unused,
+  output wire art_alive
 );
+  assign art_alive = 1'b0;
 endmodule
 
 module tt_um_herald (
@@ -16,11 +18,14 @@ module tt_um_herald (
     input  wire       clk,
     input  wire       rst_n
 );
-
+  wire _art_alive;
   (* keep *)
   PRAWNS_ART prawns_art_inst (
-  	._unused(1'b0)
+  	._unused(1'b0),
+    .art_alive(_art_alive)
   );
+
+  wire _art_sink = _art_alive;
   // Bidirectional pins unused
   assign uio_oe = 8'h00;
   assign uio_out = 8'h00;
