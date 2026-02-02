@@ -1,18 +1,22 @@
 import pya
 
-INPUT_GDS  = "tt_um_herald.klayout.gds"
-OUTPUT_GDS = "tt_um_herald_prawns.gds"
+OUTPUT_GDS = "../macros/prawns_art/prawns_art.gds"
 
-# MET4 (confirmed)
+# MET4
 LAYER = 71
 DT    = 20
 
+# MET3 for text pixels
+TEXT_LAYER = 70   # MET3
+TEXT_DT    = 20
+
 # Load
 ly = pya.Layout()
-ly.read(INPUT_GDS)
-top = ly.top_cell()
+ly.dbu = 0.001  # 1 nm DBU (typical)
+top = ly.create_cell("PRAWNS_ART")
 dbu = ly.dbu
 shapes = top.shapes(ly.layer(LAYER, DT))
+text_shapes = top.shapes(ly.layer(TEXT_LAYER, TEXT_DT))
 
 def box(x1, y1, x2, y2):
     return pya.Box(
@@ -121,7 +125,7 @@ for ch in TEXT:
             if bitmap[row][col] == "1":
                 px = x + col * (PIX + GAP)
                 py = y + (CHAR_H - 1 - row) * (PIX + GAP)
-                shapes.insert(box(px, py, px + PIX, py + PIX))
+                text_shapes.insert(box(px, py, px + PIX, py + PIX))
     x += CHAR_W * (PIX + GAP) + 0.8
 
 ly.write(OUTPUT_GDS)
