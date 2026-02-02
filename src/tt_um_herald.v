@@ -1,11 +1,17 @@
 `default_nettype none
-`ifndef SYNTHESIS
+`ifdef SYNTHESIS
+(* blackbox *)
+module PRAWNS_ART (
+  input wire _unused,
+  output wire art_alive
+);
+endmodule
+`else
 
 module PRAWNS_ART (
   input wire _unused,
   output wire art_alive
 );
-
   assign art_alive = 1'b0;
 endmodule
 `endif
