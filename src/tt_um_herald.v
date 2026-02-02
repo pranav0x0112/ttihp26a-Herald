@@ -1,12 +1,14 @@
 `default_nettype none
+`ifndef SYNTHESIS
 
-(* keep *)
 module PRAWNS_ART (
-	input wire _unused,
+  input wire _unused,
   output wire art_alive
 );
+
   assign art_alive = 1'b0;
 endmodule
+`endif
 
 module tt_um_herald (
     input  wire [7:0] ui_in,      
