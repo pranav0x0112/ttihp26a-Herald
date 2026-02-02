@@ -52,6 +52,7 @@
   
   "ERROR_ON_DISCONNECTED_PINS": false,
   "SYNTH_USE_ABC": false,
+  "SYNTH_BLACKBOX_CELLS": ["PRAWNS_ART"],
   "SYNTH_USE_PG_PINS": false,
   "SYNTH_NO_FLAT": true,
   "FP_PDN_CHECK_NODES": false,
