@@ -1,6 +1,6 @@
 `default_nettype none
 
-(* blackbox *) (* keep *)
+(* keep *)
 module PRAWNS_ART (
 	input wire _unused,
   output wire art_alive
