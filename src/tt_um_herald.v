@@ -1,14 +1,3 @@
-module PRAWNS_ART (
-  input wire clk,
-  output reg alive
-);
-  initial alive = 1'b0;
-
-  always @(posedge clk) begin
-    alive <= ~alive;
-  end
-endmodule
-
 module tt_um_herald (
     input  wire [7:0] ui_in,      
     output reg  [7:0] uo_out,     // Data output bus (bit 7 = BUSY)

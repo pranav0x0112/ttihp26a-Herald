@@ -40,6 +40,7 @@
           "orientation": "N"
         }
       },
+      "verilog": ["dir::../macros/prawns_art/prawns_art.v"],
       "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
       "lef": ["dir::../macros/prawns_art/prawns_art.lef"],
       "lib": {
