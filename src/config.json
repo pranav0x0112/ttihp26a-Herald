@@ -41,7 +41,10 @@
         }
       },
       "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
-      "lef": ["dir::../macros/prawns_art/prawns_art.lef"]
+      "lef": ["dir::../macros/prawns_art/prawns_art.lef"],
+      "lib": {
+        "*": ["dir::../macros/prawns_art/prawns_art.lib"]
+      }
     }
   },
   

@@ -7,6 +7,25 @@ MACRO PRAWNS_ART
   ORIGIN 0 0 ;
   SIZE 33.0 BY 8.3 ;
   SYMMETRY X Y ;
+
+  PIN clk
+    DIRECTION INPUT ;
+    USE SIGNAL ;
+    PORT
+      LAYER met1 ;
+      RECT 0.0 0.0 0.5 0.5 ;
+    END
+  END clk
+
+  PIN alive
+    DIRECTION OUTPUT ;
+    USE SIGNAL ;
+    PORT
+      LAYER met1 ;
+      RECT 1.0 0.0 1.5 0.5 ;
+    END
+  END alive
+
 END PRAWNS_ART
 
 END LIBRARY

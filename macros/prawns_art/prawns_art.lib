@@ -1,0 +1,15 @@
+library(prawns_art) {
+    cell(PRAWNS_ART) {
+        area : 1;
+
+        pin(clk) {
+            direction : input;
+            clock : true;
+        }
+
+        pin(alive) {
+            direction : output; 
+            function : "clk";
+        }
+    }
+}

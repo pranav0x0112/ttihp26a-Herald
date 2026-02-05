@@ -1,20 +1,13 @@
-`default_nettype none
-`ifdef SYNTHESIS
-(* blackbox *)
 module PRAWNS_ART (
-  input wire _unused,
-  output wire art_alive
+  input wire clk,
+  output reg alive
 );
-endmodule
-`else
+  initial alive = 1'b0;
 
-module PRAWNS_ART (
-  input wire _unused,
-  output wire art_alive
-);
-  assign art_alive = 1'b0;
+  always @(posedge clk) begin
+    alive <= ~alive;
+  end
 endmodule
-`endif
 
 module tt_um_herald (
     input  wire [7:0] ui_in,      
@@ -27,10 +20,10 @@ module tt_um_herald (
     input  wire       rst_n
 );
   wire _art_alive;
-  (* keep *)
+
   PRAWNS_ART prawns_art_inst (
-  	._unused(1'b0),
-    .art_alive(_art_alive)
+  	.clk(clk),
+    .alive(_art_alive)
   );
 
   wire _art_sink = _art_alive;
