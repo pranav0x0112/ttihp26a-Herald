@@ -15,10 +15,9 @@ module tt_um_herald (
     .alive(_art_alive)
   );
 
-  wire _art_sink = _art_alive;
-  // Bidirectional pins unused
+  // Bidirectional pins - route art signal to prevent optimization
   assign uio_oe = 8'h00;
-  assign uio_out = 8'h00;
+  assign uio_out = {7'b0, _art_alive};
 
   // Control signals
   wire wr_strobe = uio_in[0];
