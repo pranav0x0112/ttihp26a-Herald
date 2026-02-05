@@ -1,15 +1,20 @@
 library(prawns_art) {
-    cell(PRAWNS_ART) {
-        area : 1;
+  slew_lower_threshold_pct_rise : 0.3;
+  slew_upper_threshold_pct_rise : 0.7;
+  slew_lower_threshold_pct_fall : 0.3;
+  slew_upper_threshold_pct_fall : 0.7;
 
-        pin(clk) {
-            direction : input;
-            clock : true;
-        }
+  cell(PRAWNS_ART) {
+    area : 1;
 
-        pin(alive) {
-            direction : output; 
-            function : "clk";
-        }
+    pin(clk) {
+      direction : input;
+      clock : true;
     }
+
+    pin(alive) {
+      direction : output;
+      function : "clk";
+    }
+  }
 }
