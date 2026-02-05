@@ -6,13 +6,14 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = tt_um_herald.v mkCORDIC.v mkCORDICHighLevel.v mkMAC.v tt_um_herald.v
+PROJECT_SOURCES = tt_um_herald.v mkCORDIC.v mkCORDICHighLevel.v mkMAC.v
 
 ifneq ($(GATES),yes)
 
 # RTL simulation:
 SIM_BUILD				= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+VERILOG_SOURCES += $(PWD)/prawns_art_stub.v
 
 else
 
