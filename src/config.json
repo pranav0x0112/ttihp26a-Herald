@@ -41,24 +41,13 @@
         }
       },
       "gds": ["dir::../macros/prawns_art/prawns_art.gds"],
-      "lef": ["dir::../macros/prawns_art/prawns_art.lef"],
-      "lib": {
-        "*": ["dir::../macros/prawns_art/prawns_art.lib"]
-      }
+      "lef": ["dir::../macros/prawns_art/prawns_art.lef"]
     }
   },
   
-  "PDN_MACRO_CONNECTIONS": ["prawns_art_inst VPWR VGND VPWR VGND"],
-  
-  "ERROR_ON_PDN_VIOLATIONS": false,
-  
-  "//": "Macro power routing",
-  "RUN_IRDROP_REPORT": 0,
-  "MAGIC_NO_EXT_UNIQUE": 1,
-  "FP_PDN_HORIZONTAL_LAYER": "Metal3",
-  "FP_MACRO_HORIZONTAL_HALO": 3,
-  "FP_MACRO_VERTICAL_HALO": 3,
-  "FP_PDN_VOFFSET": 10,
+  "IGNORE_DISCONNECTED_MODULES": ["PRAWNS_ART", "prawns_art_inst"],
+  "ERROR_ON_DISCONNECTED_PINS": false,
+  "FP_PDN_CHECK_NODES": false,
 
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",

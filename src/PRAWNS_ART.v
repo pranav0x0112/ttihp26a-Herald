@@ -1,17 +1,7 @@
-// Behavioral model of PRAWNS_ART macro
-// This synthesizes normally, then gets replaced by the hard macro during PnR
+// Pure decorative GDS art macro - blackbox only
 
 `default_nettype none
 
-module PRAWNS_ART (
-    input wire clk,
-    output reg alive
-);
-
-    initial alive = 1'b0;
-
-    always @(posedge clk) begin
-        alive <= ~alive;
-    end
-
+(* blackbox *)
+module PRAWNS_ART ();
 endmodule
