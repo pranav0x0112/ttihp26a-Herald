@@ -10,6 +10,10 @@ DT    = 20
 TEXT_LAYER = 70   # MET3
 TEXT_DT    = 20
 
+# PR boundary layer (required by OpenLane)
+PR_BOUNDARY_LAYER = 235
+PR_BOUNDARY_DT = 4
+
 # Load
 ly = pya.Layout()
 ly.dbu = 0.001  # 1 nm DBU (typical)
@@ -113,6 +117,15 @@ fill_block = box(
 )
 
 top.shapes(ly.layer(FILL_BLOCK_LAYER, FILL_BLOCK_DT)).insert(fill_block)
+
+# --- PR Boundary (defines macro physical boundary) ---
+pr_boundary = box(
+    ox - fill_margin,
+    oy - fill_margin,
+    ox + block_w + fill_margin,
+    oy + block_h + fill_margin
+)
+top.shapes(ly.layer(PR_BOUNDARY_LAYER, PR_BOUNDARY_DT)).insert(pr_boundary)
 
 x = ox + 1.0
 y = oy + 1.0
