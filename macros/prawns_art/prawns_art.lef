@@ -12,7 +12,7 @@ MACRO PRAWNS_ART
     DIRECTION INPUT ;
     USE SIGNAL ;
     PORT
-      LAYER met1 ;
+      LAYER Metal1 ;
       RECT 0.0 0.0 0.5 0.5 ;
     END
   END clk
@@ -21,7 +21,7 @@ MACRO PRAWNS_ART
     DIRECTION OUTPUT ;
     USE SIGNAL ;
     PORT
-      LAYER met1 ;
+      LAYER Metal1 ;
       RECT 1.0 0.0 1.5 0.5 ;
     END
   END alive

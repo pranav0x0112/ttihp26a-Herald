@@ -48,9 +48,8 @@
     }
   },
   
-  "ERROR_ON_DISCONNECTED_PINS": false,
-  "FP_PDN_CHECK_NODES": false,
-  "PDN_ENABLE": false,
+  "PDN_MACRO_CONNECTIONS": ["prawns_art_inst VPWR VGND VPWR VGND"],
+  
   "ERROR_ON_PDN_VIOLATIONS": false,
 
 
