@@ -2,25 +2,25 @@ import pya
 
 OUTPUT_GDS = "../macros/prawns_art/prawns_art.gds"
 
-# MET4
-LAYER = 71
-DT    = 20
-
-# MET3 for text pixels
-TEXT_LAYER = 70   # MET3
-TEXT_DT    = 20
-
-# PR boundary layer (required by OpenLane)
+# Layer numbers from working TinyTapeout art (tt09ball)
+# PR boundary - required for OpenLane
 PR_BOUNDARY_LAYER = 235
 PR_BOUNDARY_DT = 4
+
+# Metal layers
+MET3_LAYER = 70
+MET3_DT = 20
+
+MET4_LAYER = 71
+MET4_DT = 20
 
 # Load
 ly = pya.Layout()
 ly.dbu = 0.001  # 1 nm DBU (typical)
 top = ly.create_cell("PRAWNS_ART")
 dbu = ly.dbu
-shapes = top.shapes(ly.layer(LAYER, DT))
-text_shapes = top.shapes(ly.layer(TEXT_LAYER, TEXT_DT))
+met4_shapes = top.shapes(ly.layer(MET4_LAYER, MET4_DT))
+met3_shapes = top.shapes(ly.layer(MET3_LAYER, MET3_DT))
 
 def box(x1, y1, x2, y2):
     return pya.Box(
@@ -107,26 +107,9 @@ pr_boundary = box(0, 0, block_w, block_h)
 top.shapes(ly.layer(PR_BOUNDARY_LAYER, PR_BOUNDARY_DT)).insert(pr_boundary)
 
 # --- MET4 background fill ---
-shapes.insert(box(ox, oy, ox + block_w, oy + block_h))
-
-# --- MET4 fill block (slightly larger than art block) ---
-FILL_BLOCK_LAYER = 71   # same MET4 layer
-FILL_BLOCK_DT    = 21   # fill-block datatype (safe, ignored by fab metal)
-
-fill_margin = 0.5  # microns
-
-fill_block = box(
-    ox - fill_margin,
-    oy - fill_margin,
-    ox + block_w + fill_margin,
-    oy + block_h + fill_margin
-)
-
-# --- MET4 background fill ---
-shapes.insert(box(ox, oy, ox + block_w, oy + block_h))
+met4_shapes.insert(box(ox, oy, ox + block_w, oy + block_h))
 
 x = ox + 1.0
-y = oy + 1.0
 y = oy + 1.0
 
 # ---- DRAW TEXT (negative space) ----
@@ -137,7 +120,7 @@ for ch in TEXT:
             if bitmap[row][col] == "1":
                 px = x + col * (PIX + GAP)
                 py = y + (CHAR_H - 1 - row) * (PIX + GAP)
-                text_shapes.insert(box(px, py, px + PIX, py + PIX))
+                met3_shapes.insert(box(px, py, px + PIX, py + PIX))
     x += CHAR_W * (PIX + GAP) + 0.8
 
 ly.write(OUTPUT_GDS)
