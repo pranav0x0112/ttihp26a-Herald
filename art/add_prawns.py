@@ -2,17 +2,17 @@ import pya
 
 OUTPUT_GDS = "../macros/prawns_art/prawns_art.gds"
 
-# Layer numbers from working TinyTapeout art (tt09ball)
+# IHP SG13G2 layer numbers (from ihp-sg13g2.lyp)
 # PR boundary - required for OpenLane
-PR_BOUNDARY_LAYER = 235
+PR_BOUNDARY_LAYER = 189
 PR_BOUNDARY_DT = 4
 
 # Metal layers
-MET3_LAYER = 70
-MET3_DT = 20
+MET3_LAYER = 30
+MET3_DT = 0
 
-MET4_LAYER = 71
-MET4_DT = 20
+MET4_LAYER = 50
+MET4_DT = 0
 
 # Load
 ly = pya.Layout()
