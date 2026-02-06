@@ -95,12 +95,18 @@ FONT = {
 TEXT = "PRAWNS"
 
 # ---- PLACEMENT ----
-ox, oy = 5.0, 5.0
+ox, oy = 0.0, 0.0
 
-# Overall block
+# Calculate dimensions
 char_advance = CHAR_W * (PIX + GAP) + 0.8
-block_w = len(TEXT) * char_advance + 1.2
+block_w = len(TEXT) * char_advance + 2.0
 block_h = CHAR_H * (PIX + GAP) + 2.0
+
+# --- PR Boundary (must be first, defines macro extent) ---
+pr_boundary = box(0, 0, block_w, block_h)
+top.shapes(ly.layer(PR_BOUNDARY_LAYER, PR_BOUNDARY_DT)).insert(pr_boundary)
+
+# --- MET4 background fill ---
 shapes.insert(box(ox, oy, ox + block_w, oy + block_h))
 
 # --- MET4 fill block (slightly larger than art block) ---
@@ -116,18 +122,11 @@ fill_block = box(
     oy + block_h + fill_margin
 )
 
-top.shapes(ly.layer(FILL_BLOCK_LAYER, FILL_BLOCK_DT)).insert(fill_block)
-
-# --- PR Boundary (defines macro physical boundary) ---
-pr_boundary = box(
-    ox - fill_margin,
-    oy - fill_margin,
-    ox + block_w + fill_margin,
-    oy + block_h + fill_margin
-)
-top.shapes(ly.layer(PR_BOUNDARY_LAYER, PR_BOUNDARY_DT)).insert(pr_boundary)
+# --- MET4 background fill ---
+shapes.insert(box(ox, oy, ox + block_w, oy + block_h))
 
 x = ox + 1.0
+y = oy + 1.0
 y = oy + 1.0
 
 # ---- DRAW TEXT (negative space) ----
