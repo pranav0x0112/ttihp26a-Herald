@@ -1,26 +1,25 @@
 import pya
+import os
 
-OUTPUT_GDS = "../macros/prawns_art/prawns_art.gds"
+# Get the directory of this script
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_GDS = os.path.join(SCRIPT_DIR, "..", "macros", "prawns_art", "prawns_art.gds")
 
 # IHP SG13G2 layer numbers (from ihp-sg13g2.lyp)
 # PR boundary - required for OpenLane
 PR_BOUNDARY_LAYER = 189
 PR_BOUNDARY_DT = 4
 
-# Metal layers
-MET3_LAYER = 30
-MET3_DT = 0
-
-MET4_LAYER = 50
-MET4_DT = 0
+# Top metal for power rails - text goes here
+MET5_LAYER = 67
+MET5_DT = 0
 
 # Load
 ly = pya.Layout()
 ly.dbu = 0.001  # 1 nm DBU (typical)
 top = ly.create_cell("PRAWNS_ART")
 dbu = ly.dbu
-met4_shapes = top.shapes(ly.layer(MET4_LAYER, MET4_DT))
-met3_shapes = top.shapes(ly.layer(MET3_LAYER, MET3_DT))
+met5_shapes = top.shapes(ly.layer(MET5_LAYER, MET5_DT))
 
 def box(x1, y1, x2, y2):
     return pya.Box(
@@ -106,13 +105,11 @@ block_h = CHAR_H * (PIX + GAP) + 2.0
 pr_boundary = box(0, 0, block_w, block_h)
 top.shapes(ly.layer(PR_BOUNDARY_LAYER, PR_BOUNDARY_DT)).insert(pr_boundary)
 
-# --- MET4 background fill ---
-met4_shapes.insert(box(ox, oy, ox + block_w, oy + block_h))
-
+# NO background block - text only on Metal5
 x = ox + 1.0
 y = oy + 1.0
 
-# ---- DRAW TEXT (negative space) ----
+# ---- DRAW TEXT on Metal5 ----
 for ch in TEXT:
     bitmap = FONT[ch]
     for row in range(CHAR_H):
@@ -120,7 +117,7 @@ for ch in TEXT:
             if bitmap[row][col] == "1":
                 px = x + col * (PIX + GAP)
                 py = y + (CHAR_H - 1 - row) * (PIX + GAP)
-                met3_shapes.insert(box(px, py, px + PIX, py + PIX))
+                met5_shapes.insert(box(px, py, px + PIX, py + PIX))
     x += CHAR_W * (PIX + GAP) + 0.8
 
 ly.write(OUTPUT_GDS)
