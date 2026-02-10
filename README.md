@@ -6,7 +6,6 @@
 
 **[Complete Technical Documentation](docs/info.md)**
 
----
 
 ## What Does Herald Do?
 
@@ -24,8 +23,6 @@ Herald provides **8 hardware-accelerated mathematical operations** through a sim
 - **msu** - Multiply-subtract for adaptive algorithms
 - **clear** - Reset accumulator
 
----
-
 ## Key Features
 
 - **Hardware-accelerated math** - CORDIC and MAC operations in silicon  
@@ -33,9 +30,7 @@ Herald provides **8 hardware-accelerated mathematical operations** through a sim
 - **Simple serial interface** - 8-bit data bus with write/read strobes  
 - **Low resource usage** - Optimized for TinyTapeout 2×2 tile design  
 - **50 MHz operation** - Fast computation with deterministic latency  
-- **Busy flag** - Easy polling for operation completion  
-
----
+- **Busy flag** - Easy polling for operation completion 
 
 ## Quick Start
 
@@ -72,19 +67,6 @@ All values are **Q12.12 fixed-point** (24-bit): 12 integer bits + 12 fractional 
 **Range:** -2048.0 to +2047.999755859375  
 **Resolution:** 1/4096 ≈ 0.000244
 
----
-
-## Use Cases
-
-- **Robotics** - Fast kinematics, inverse kinematics, trajectory planning
-- **Signal Processing** - FIR/IIR filters using MAC operations
-- **Computer Graphics** - Rotation matrices, vector normalization
-- **Navigation** - Heading calculations, distance computations
-- **Control Systems** - PID controllers with multiply-accumulate
-- **Communication** - Phase calculations, modulation/demodulation
-
----
-
 ## Architecture
 
 Herald consists of three main components:
@@ -95,12 +77,8 @@ Herald consists of three main components:
 
 All computations use **Bluespec-generated Verilog** modules for optimal hardware utilization.
 
----
-
 ## Documentation
 
 - **[Complete Technical Documentation](docs/info.md)** - Full command reference, protocol specs, examples  
 - **[Testing Guide](test/README.md)** - How to run cocotb testbenches  
 - **[Project Info](info.yaml)** - Pin mappings and metadata  
-
----
