@@ -1,42 +1,106 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
-# Tiny Tapeout Verilog Project Template
+# Herald - DSP Accelerator for TinyTapeout
 
-- [Read the documentation for project](docs/info.md)
+**Herald** is a hardware digital signal processing (DSP) accelerator combining CORDIC trigonometric functions and multiply-accumulate (MAC) operations in a compact silicon design. Perfect for embedded math-intensive applications where software computation is too slow.
 
-## What is Tiny Tapeout?
+**[Complete Technical Documentation](docs/info.md)**
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
+---
 
-To learn more and get started, visit https://tinytapeout.com.
+## What Does Herald Do?
 
-## Set up your Verilog project
+Herald provides **8 hardware-accelerated mathematical operations** through a simple serial interface:
 
-1. Add your Verilog files to the `src` folder.
-2. Edit the [info.yaml](info.yaml) and update information about your project, paying special attention to the `source_files` and `top_module` properties. If you are upgrading an existing Tiny Tapeout project, check out our [online info.yaml migration tool](https://tinytapeout.github.io/tt-yaml-upgrade-tool/).
-3. Edit [docs/info.md](docs/info.md) and add a description of your project.
-4. Adapt the testbench to your design. See [test/README.md](test/README.md) for more information.
+### CORDIC Trigonometry
+- **sin/cos** - Compute sine and cosine simultaneously from an angle
+- **atan2** - Find angle from x,y coordinates 
+- **sqrt** - Calculate vector magnitude √(x² + y²)
+- **normalize** - Get unit vector + magnitude in one operation
 
-The GitHub action will automatically build the ASIC files using [LibreLane](https://www.zerotoasiccourse.com/terminology/librelane/).
+### MAC Arithmetic
+- **multiply** - Fast fixed-point multiplication
+- **mac** - Multiply-accumulate for dot products and filters
+- **msu** - Multiply-subtract for adaptive algorithms
+- **clear** - Reset accumulator
 
-## Enable GitHub actions to build the results page
+---
 
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
+## Key Features
 
-## Resources
+- **Hardware-accelerated math** - CORDIC and MAC operations in silicon  
+- **Fixed-point arithmetic** - Q12.12 format (24-bit: 12 integer, 12 fractional)  
+- **Simple serial interface** - 8-bit data bus with write/read strobes  
+- **Low resource usage** - Optimized for TinyTapeout 2×2 tile design  
+- **50 MHz operation** - Fast computation with deterministic latency  
+- **Busy flag** - Easy polling for operation completion  
 
-- [FAQ](https://tinytapeout.com/faq/)
-- [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-- [Build your design locally](https://www.tinytapeout.com/guides/local-hardening/)
+---
 
-## What next?
+## Quick Start
 
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@tinytapeout](https://twitter.com/tinytapeout)
-  - Bluesky [@tinytapeout.com](https://bsky.app/profile/tinytapeout.com)
+### Interface Summary
+
+| Signal | Direction | Purpose |
+|--------|-----------|---------|
+| `ui[7:0]` | Input | Data/command input bus |
+| `uo[7:0]` | Output | Data output bus (**uo[7] = BUSY**) |
+| `uio[0]` | Input | **WR** strobe (write data) |
+| `uio[1]` | Input | **RD** strobe (read data) |
+
+### Basic Usage
+
+1. **Write command byte** (e.g., `0x10` for sin/cos)
+2. **Write operand(s)** - 3 bytes each, LSB-first
+3. **Poll BUSY flag** - Wait for `uo[7] = 0`
+4. **Read result** - 3, 6, or 9 bytes depending on command
+
+## Commands Reference
+
+| Opcode | Command | Operands | Result Size | Description |
+|--------|---------|----------|-------------|-------------|
+| `0x10` | SINCOS | angle (3B) | 6 bytes | sin and cos of angle |
+| `0x11` | ATAN2 | y (3B), x (3B) | 3 bytes | angle from coordinates |
+| `0x12` | SQRT | x (3B), y (3B) | 3 bytes | magnitude √(x²+y²) |
+| `0x13` | NORMALIZE | x (3B), y (3B) | 9 bytes | unit vector + magnitude |
+| `0x20` | MULTIPLY | a (3B), b (3B) | 3 bytes | a × b |
+| `0x21` | MAC | a (3B), b (3B) | 3 bytes | acc += a × b |
+| `0x22` | CLEAR | none | none | reset accumulator |
+| `0x23` | MSU | a (3B), b (3B) | 3 bytes | acc -= a × b |
+
+All values are **Q12.12 fixed-point** (24-bit): 12 integer bits + 12 fractional bits  
+**Range:** -2048.0 to +2047.999755859375  
+**Resolution:** 1/4096 ≈ 0.000244
+
+---
+
+## Use Cases
+
+- **Robotics** - Fast kinematics, inverse kinematics, trajectory planning
+- **Signal Processing** - FIR/IIR filters using MAC operations
+- **Computer Graphics** - Rotation matrices, vector normalization
+- **Navigation** - Heading calculations, distance computations
+- **Control Systems** - PID controllers with multiply-accumulate
+- **Communication** - Phase calculations, modulation/demodulation
+
+---
+
+## Architecture
+
+Herald consists of three main components:
+
+1. **Control FSM** - Manages serial protocol (IDLE → CMD → DATA → EXECUTE → RESULT)
+2. **CORDIC Engine** - Iterative rotation algorithm using only shifts/adds
+3. **MAC Engine** - Fixed-point multiplier with internal accumulator
+
+All computations use **Bluespec-generated Verilog** modules for optimal hardware utilization.
+
+---
+
+## Documentation
+
+- **[Complete Technical Documentation](docs/info.md)** - Full command reference, protocol specs, examples  
+- **[Testing Guide](test/README.md)** - How to run cocotb testbenches  
+- **[Project Info](info.yaml)** - Pin mappings and metadata  
+
+---
