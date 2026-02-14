@@ -8,10 +8,6 @@ module tt_um_herald (
     input  wire       clk,
     input  wire       rst_n
 );
-  // Decorative GDS art instance
-  (* keep *)
-  PRAWNS_ART prawns_art_inst ();
-
   // Bidirectional pins unused
   assign uio_oe = 8'h00;
   assign uio_out = 8'h00;
